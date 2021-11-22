@@ -1,30 +1,52 @@
+<form method="post">
+    <input type="input" placeholder="Введите первое значение" name="number1">
+    <input type="input" placeholder="Введите второе значение" name="number2">
+    <input type="submit" value="Сумма" name="sum">
+    <input type="submit" value="Минус" name="min">
+    <input type="submit" value="Умножить" name="mul">
+    <input type="submit" value="Поделить" name="dev">
+</form>
+
 <?php
 
-// Задание 1-2
-$dir_images = scandir('./images'); // сканируем директорию
-$src_dir_img = "./images"; // путь к директории
-
-$link = mysqli_connect('localhost', 'root', '', 'gb'); // подключаемся к БД
+$link = mysqli_connect('localhost', 'root', '', 'gb');
 
 if ($link) {
-    foreach ($dir_images as $dir) { // фильтруем директорию на файлы в папке, и добавляем файлы в массив
-        if ($dir != '.' && $dir != "..") {
-            $src_images[] = $dir;
+    if (isset($_POST["number1"]) && isset($_POST["number2"])) {
+        $number1 = $_POST["number1"];
+        $number2 = $_POST["number2"];
+
+        $querySum = "SELECT $number1 + $number2;";
+        $queryMin = "SELECT $number1 - $number2;";
+        $queryMul = "SELECT $number1 * $number2;";
+        $queryDev = "SELECT $number1 / $number2;";
+
+        if (isset($_POST["sum"])) {
+            $resultSum = mysqli_query($link, $querySum);
+            while ($row = mysqli_fetch_array($resultSum)) {
+                echo "Сумма $number1 + $number2 = $row[0]";
+            }
+        } else if (isset($_POST["min"])) {
+            $resultMin = mysqli_query($link, $queryMin);
+            while ($row = mysqli_fetch_array($resultMin)) {
+                echo "Вычитание $number1 - $number2 = $row[0]";
+            }
+        } else if (isset($_POST["mul"])) {
+            $resultMul = mysqli_query($link, $queryMul);
+            while ($row = mysqli_fetch_array($resultMul)) {
+                echo "Произведение $number1 * $number2 = $row[0]";
+            }
+        } else if (isset($_POST["dev"])) {
+            if ($number1 == 0 || $number2 == 0) {
+                echo "При деление на ноль число не определено. Попробуй поменять значения";
+            } else {
+                $resultDev = mysqli_query($link, $queryDev);
+                while ($row = mysqli_fetch_array($resultDev)) {
+                    echo "Деление $number1 / $number2 = $row[0]";
+                }
+            }
         }
     }
-    foreach ($src_images as $src_image) { // сортируем файлы по-очереди
-        $filesize = filesize("$src_dir_img/$src_image");
-        $insert_in_db = mysqli_query($link, "INSERT INTO images (src, name, size) VALUES ('$src_dir_img/$src_image', '$src_image', '$filesize');");
-    };
-    render($link);
-    mysqli_close($link);
 } else {
-    die('Connection failed to DB');
+    die("Troubles connecting to BD");
 };
-
-function render($arg){
-    $select_in_db = mysqli_query($arg, "SELECT * FROM images;"); // достаём данные из БД
-    while($result = mysqli_fetch_assoc($select_in_db)){
-       echo '<a target="_blank" href="' . $result['src'] . '"><img src="' . $result['src'] . '" with="100px" height="100px"> </img>';
-    }
-}
