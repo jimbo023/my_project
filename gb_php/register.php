@@ -1,3 +1,4 @@
+
 <form action="/products/register.php" method="post">
     <input type="input" placeholder="email" name="email">
     <input type="password" placeholder="password" name="password">
